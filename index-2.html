@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gideon AI">
+<title>Gideon AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;position:fixed;font-family:'Inter',sans-serif;color:#fff;background:#000}
+
+/* BRIGHTER background */
+.bg{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,#0e1020 0%,#111428 50%,#0c0e1e 100%)}
+.bg-glow{position:absolute;width:600px;height:400px;border-radius:50%;top:10%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,rgba(40,80,255,.12) 0%,transparent 70%);pointer-events:none}
+
+.screen{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s,transform .5s}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(8px)}
+
+/* SPLASH */
+.sp-wrap{display:flex;flex-direction:column;align-items:center}
+.sp-icon{width:88px;height:88px;border-radius:24px;background:linear-gradient(145deg,#1a1a3a,#0d0d20);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 0 60px rgba(80,100,255,.3),0 20px 50px rgba(0,0,0,.6)}
+.sp-icon svg{width:38px;height:38px}
+.sp-name{font-size:2.2rem;font-weight:700;letter-spacing:2px;color:#fff}
+.sp-tag{font-size:.6rem;letter-spacing:5px;color:rgba(255,255,255,.45);text-transform:uppercase;margin-top:8px}
+.sp-loader{margin-top:54px;width:100px;height:2px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.sp-fill{height:100%;background:linear-gradient(90deg,#1a54ff,#7000ff,#c8000a);animation:spf 2.3s ease forwards}
+@keyframes spf{from{width:0}to{width:100%}}
+
+/* SUBSCRIPTION */
+#sub{justify-content:flex-start;overflow-y:auto;padding:0 20px 44px}
+.sub-top{width:100%;text-align:center;padding:54px 0 26px}
+.sub-top h1{font-size:1.7rem;font-weight:700;color:#fff;letter-spacing:1px}
+.sub-top p{font-size:.6rem;letter-spacing:4px;color:rgba(255,255,255,.4);margin-top:5px;text-transform:uppercase}
+.plan-card{width:100%;max-width:370px;margin:0 auto 22px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:26px 20px}
+.p-badge{display:inline-block;background:rgba(112,0,255,.25);border:1px solid rgba(112,0,255,.45);border-radius:20px;padding:3px 14px;font-size:.54rem;letter-spacing:3px;color:#c09fff;text-transform:uppercase;margin-bottom:16px}
+.p-price{font-size:3.4rem;font-weight:700;line-height:1;color:#fff}
+.p-price span{font-size:.8rem;font-weight:300;color:rgba(255,255,255,.45)}
+.p-trial{font-size:.7rem;color:#4de8a0;margin:6px 0 18px}
+.p-div{height:1px;background:rgba(255,255,255,.1);margin-bottom:15px}
+.pf{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.82rem;color:rgba(255,255,255,.8);font-weight:300}
+.pf:last-child{border:none}
+.pfd{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#1a54ff,#7000ff);flex-shrink:0}
+.btn-trial{display:block;width:100%;max-width:370px;margin:0 auto 14px;padding:17px;border-radius:14px;border:none;background:linear-gradient(135deg,#1a54ff,#7000ff);color:#fff;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.5px;cursor:pointer;box-shadow:0 8px 30px rgba(26,84,255,.4);transition:transform .15s}
+.btn-trial:active{transform:scale(.97)}
+.sub-note{font-size:.57rem;color:rgba(255,255,255,.28);text-align:center;max-width:300px;margin:0 auto;line-height:1.8}
+
+/* MAIN */
+#main{justify-content:space-between;padding:0}
+
+.sbar{width:100%;padding:16px 22px 0;display:flex;justify-content:space-between;align-items:center}
+.sbar-l{display:flex;align-items:center;gap:7px}
+.sdot{width:7px;height:7px;border-radius:50%;background:#2a2a4a;transition:all .4s}
+.sdot.on{background:#4de8a0;box-shadow:0 0 8px rgba(77,232,160,.9)}
+.slbl{font-size:.55rem;letter-spacing:3px;color:rgba(255,255,255,.35);text-transform:uppercase;font-weight:500}
+.stime{font-size:.65rem;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,.35)}
+
+.tbar{width:100%;padding:9px 22px 0;display:flex;justify-content:space-between;align-items:center}
+.gname{font-size:1.4rem;font-weight:700;letter-spacing:.5px;color:#fff}
+.ticons{display:flex;gap:9px}
+.tic{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s}
+.tic svg{width:16px;height:16px;fill:rgba(255,255,255,.7)}
+.tic:active{background:rgba(255,255,255,.15);transform:scale(.92)}
+
+/* CENTER */
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20px;gap:0}
+
+.gstat{font-size:.55rem;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:28px;min-height:14px;transition:color .4s;text-align:center;font-weight:600}
+.gstat.active{color:#4de8a0}
+.gstat.listening{color:#f0b030}
+.gstat.speaking{color:#6ab4ff}
+.gstat.thinking{color:#c09fff}
+
+/* BUTTON */
+.btnwrap{position:relative;width:200px;height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+.cring{position:absolute;inset:-3px;border-radius:50%;opacity:0;transition:opacity .55s}
+.cring.on{opacity:1}
+.cring-spin{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#1a54ff 0deg,#7000ff 88deg,#c8000a 176deg,#c9920a 264deg,#1a54ff 360deg);animation:cspin 3.5s linear infinite}
+.cring-spin::after{content:'';position:absolute;inset:4px;border-radius:50%;background:#0e1020}
+.cring-blur{position:absolute;inset:-14px;border-radius:50%;background:conic-gradient(rgba(26,84,255,.3) 0deg,rgba(112,0,255,.3) 88deg,rgba(200,0,10,.3) 176deg,rgba(201,146,10,.3) 264deg,rgba(26,84,255,.3) 360deg);animation:cspin 3.5s linear infinite reverse;filter:blur(14px)}
+@keyframes cspin{to{transform:rotate(360deg)}}
+.idlering{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.07)}
+.ir1{inset:-16px}.ir2{inset:-28px}
+.pring{position:absolute;border-radius:50%;border:1px solid rgba(240,176,48,.3);animation:prout 2s ease-out infinite;display:none}
+.pring.show{display:block}
+.pr1{inset:-16px;animation-delay:0s}.pr2{inset:-28px;animation-delay:.5s}.pr3{inset:-42px;animation-delay:1s}
+@keyframes prout{0%{opacity:.6;transform:scale(.95)}100%{opacity:0;transform:scale(1.07)}}
+.orb{position:relative;z-index:3;width:165px;height:165px;border-radius:50%;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;user-select:none;transition:transform .15s;overflow:hidden}
+.orb:active{transform:scale(.95)}
+.orb-bg{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 38% 32%,#222248 0%,#141430 40%,#080818 100%);border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(255,255,255,.06),0 20px 60px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 4px rgba(0,0,0,.6)}
+.orb.on .orb-bg{box-shadow:0 0 0 1px rgba(26,84,255,.3),0 0 50px rgba(26,84,255,.2),0 0 100px rgba(112,0,255,.12),0 20px 60px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.2)}
+.orb-shine{position:absolute;top:8%;left:14%;width:44%;height:28%;background:radial-gradient(ellipse,rgba(255,255,255,.1) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.orb-icon{position:relative;z-index:1;width:32px;height:32px}
+.orb-icon svg{width:32px;height:32px}
+.orb-lbl{position:relative;z-index:1;font-size:.4rem;font-weight:600;letter-spacing:5px;color:rgba(255,255,255,.35);text-transform:uppercase}
+
+/* WAVE */
+.wave{display:flex;align-items:center;gap:3px;height:28px;margin-bottom:14px;opacity:0;transition:opacity .3s}
+.wave.show{opacity:1}
+.wb{width:2.5px;border-radius:3px;background:linear-gradient(to top,#1a54ff,#9040ff);animation:wanim .65s ease-in-out infinite alternate;min-height:3px}
+.wb:nth-child(1){animation-delay:0s;height:4px}.wb:nth-child(2){animation-delay:.07s;height:9px}
+.wb:nth-child(3){animation-delay:.14s;height:16px}.wb:nth-child(4){animation-delay:.21s;height:22px}
+.wb:nth-child(5){animation-delay:.28s;height:26px}.wb:nth-child(6){animation-delay:.21s;height:22px}
+.wb:nth-child(7){animation-delay:.14s;height:16px}.wb:nth-child(8){animation-delay:.07s;height:9px}
+.wb:nth-child(9){animation-delay:0s;height:4px}
+@keyframes wanim{from{transform:scaleY(.15)}to{transform:scaleY(1)}}
+
+/* SPEECH TEXT BOX - shows what you say in real time */
+.speech-box{width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 16px;min-height:48px;margin-bottom:12px;position:relative;transition:all .3s}
+.speech-box.active{border-color:rgba(240,176,48,.5);background:rgba(240,176,48,.05)}
+.speech-label{font-size:.48rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600;margin-bottom:5px}
+.speech-text{font-size:.88rem;color:rgba(255,255,255,.9);line-height:1.5;min-height:20px;font-weight:400}
+.speech-cursor{display:inline-block;width:2px;height:14px;background:#f0b030;margin-left:2px;animation:blink .8s step-end infinite;vertical-align:middle}
+.speech-cursor.hidden{display:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* RESPONSE BOX */
+.rbox{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 16px;min-height:52px;text-align:left;font-size:.88rem;line-height:1.65;color:rgba(255,255,255,.85);font-weight:300;transition:all .3s}
+.rbox.lit{border-color:rgba(26,84,255,.45);background:rgba(26,84,255,.08)}
+.rbox-label{font-size:.48rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600;margin-bottom:5px}
+.rph{color:rgba(255,255,255,.25);font-size:.6rem;letter-spacing:3px;text-transform:uppercase}
+
+/* BOTTOM */
+.bnav{width:100%;padding:12px 4px 34px;display:flex;align-items:center;justify-content:space-around;border-top:1px solid rgba(255,255,255,.08);background:rgba(8,9,18,.9);backdrop-filter:blur(40px)}
+.bni{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;opacity:.45;transition:opacity .2s;min-width:62px;padding:2px 0}
+.bni:active{opacity:1}
+.bni svg{width:21px;height:21px;fill:rgba(255,255,255,.7)}
+.bntxt{font-size:.46rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600}
+
+/* PANELS */
+.panel{position:absolute;inset:0;z-index:70;background:rgba(8,9,18,.97);backdrop-filter:blur(50px);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1)}
+.panel.open{transform:translateY(0)}
+.ph{width:36px;height:3px;border-radius:2px;background:rgba(255,255,255,.15);margin:12px auto 0}
+.phead{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid rgba(255,255,255,.08)}
+.ptit{font-size:.7rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.9)}
+.pcls{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.55)}
+.hacts{display:flex;gap:10px;align-items:center}
+.hclr{font-size:.52rem;letter-spacing:1px;color:#ff4444;cursor:pointer;border:1px solid rgba(255,68,68,.3);border-radius:6px;padding:4px 10px;text-transform:uppercase}
+.hlist{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px}
+.hi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:13px 15px}
+.hm{display:flex;justify-content:space-between;margin-bottom:6px}
+.hr{font-size:.52rem;letter-spacing:2.5px;text-transform:uppercase;color:#c9920a;font-weight:700}
+.hr.u{color:rgba(255,255,255,.4)}
+.ht2{font-size:.52rem;color:rgba(255,255,255,.28)}
+.htxt{font-size:.84rem;line-height:1.6;color:rgba(255,255,255,.82);font-weight:300}
+.cpbtn{margin-top:9px;display:inline-flex;align-items:center;gap:5px;background:rgba(26,84,255,.14);border:1px solid rgba(26,84,255,.28);border-radius:8px;padding:5px 12px;font-size:.52rem;letter-spacing:1.5px;color:#8ec4ff;cursor:pointer;text-transform:uppercase}
+.cpbtn:active{background:rgba(26,84,255,.28)}
+.hemp{text-align:center;color:rgba(255,255,255,.22);font-size:.6rem;letter-spacing:3px;text-transform:uppercase;margin-top:50px}
+#campanel{border-radius:0}
+#camvid{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.camtop{position:absolute;top:0;left:0;right:0;z-index:2;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,rgba(0,0,0,.65),transparent)}
+.camtit{font-size:.65rem;font-weight:700;letter-spacing:4px;text-transform:uppercase}
+.cambtm{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:20px 28px 50px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to top,rgba(0,0,0,.72),transparent)}
+.camsb{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem}
+.camsh{width:68px;height:68px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.35);cursor:pointer;transition:transform .1s}
+.camsh:active{transform:scale(.92)}
+.slist2{flex:1;overflow-y:auto;padding:12px}
+.si{display:flex;align-items:center;justify-content:space-between;padding:15px 15px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;margin-bottom:8px}
+.sil{display:flex;flex-direction:column;gap:3px}
+.sin{font-size:.84rem;font-weight:500;color:#fff}
+.sid{font-size:.62rem;color:rgba(255,255,255,.38);font-weight:300}
+.tog{width:44px;height:25px;border-radius:13px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1);position:relative;cursor:pointer;transition:background .3s;flex-shrink:0}
+.tog.on{background:linear-gradient(135deg,#1a54ff,#7000ff)}
+.tkn{position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .28s;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+.tog.on .tkn{transform:translateX(19px)}
+.sver{text-align:center;padding:22px;font-size:.52rem;letter-spacing:2px;color:rgba(255,255,255,.18);text-transform:uppercase}
+input[type=file]{display:none}
+.toast{position:fixed;bottom:108px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(14,16,32,.96);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.9);font-size:.72rem;font-weight:500;padding:11px 24px;border-radius:30px;opacity:0;transition:all .28s;z-index:300;pointer-events:none;white-space:nowrap;backdrop-filter:blur(20px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="bg"><div class="bg-glow"></div></div>
+
+<!-- SPLASH -->
+<div class="screen" id="splash">
+  <div class="sp-wrap">
+    <div class="sp-icon">
+      <svg viewBox="0 0 38 38" fill="none">
+        <circle cx="19" cy="19" r="17" stroke="url(#sg)" stroke-width="2"/>
+        <path d="M13 19a6 6 0 1 0 12 0 6 6 0 0 0-12 0z" fill="url(#sg2)"/>
+        <defs>
+          <linearGradient id="sg" x1="0" y1="0" x2="38" y2="38"><stop offset="0%" stop-color="#1a54ff"/><stop offset="50%" stop-color="#7000ff"/><stop offset="100%" stop-color="#c8000a"/></linearGradient>
+          <linearGradient id="sg2" x1="13" y1="13" x2="25" y2="25"><stop offset="0%" stop-color="#4080ff"/><stop offset="100%" stop-color="#9040ff"/></linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="sp-name">Gideon</div>
+    <div class="sp-tag">Your AI Assistant</div>
+    <div class="sp-loader"><div class="sp-fill"></div></div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTION -->
+<div class="screen hidden" id="sub">
+  <div class="sub-top"><h1>Gideon AI</h1><p>Premium Intelligence</p></div>
+  <div class="plan-card">
+    <div class="p-badge">✦ Premium</div>
+    <div class="p-price">$8<span>/month</span></div>
+    <div class="p-trial">3 days free · Cancel anytime</div>
+    <div class="p-div"></div>
+    <div class="pf"><div class="pfd"></div>Voice conversations with Gideon</div>
+    <div class="pf"><div class="pfd"></div>Advanced AI intelligence</div>
+    <div class="pf"><div class="pfd"></div>Web search & open any website</div>
+    <div class="pf"><div class="pfd"></div>Camera & photo gallery access</div>
+    <div class="pf"><div class="pfd"></div>Full conversation history & copy</div>
+    <div class="pf"><div class="pfd"></div>Unlimited messages · Private & secure</div>
+  </div>
+  <button class="btn-trial" onclick="startTrial()">Start Free Trial</button>
+  <div class="sub-note">By continuing you agree to our Terms of Service. $8/month after 3-day free trial. Auto-renews unless cancelled.</div>
+</div>
+
+<!-- MAIN -->
+<div class="screen hidden" id="main">
+  <div class="sbar">
+    <div class="sbar-l"><div class="sdot" id="sdot"></div><div class="slbl" id="slbl">Standby</div></div>
+    <div class="stime" id="stime"></div>
+  </div>
+  <div class="tbar">
+    <div class="gname">Gideon</div>
+    <div class="ticons">
+      <div class="tic" onclick="openHistory()"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L15 9h5V4l-1.76 1.76A9 9 0 0 0 13 3zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></div>
+      <div class="tic" onclick="openSettings()"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
+    </div>
+  </div>
+
+  <div class="center">
+    <div class="gstat" id="gstat">Tap to activate</div>
+
+    <div class="btnwrap">
+      <div class="idlering ir1"></div>
+      <div class="idlering ir2"></div>
+      <div class="cring" id="cring"><div class="cring-blur"></div><div class="cring-spin"></div></div>
+      <div class="pring pr1" id="pr1"></div>
+      <div class="pring pr2" id="pr2"></div>
+      <div class="pring pr3" id="pr3"></div>
+      <div class="orb" id="orb" onclick="toggleGideon()">
+        <div class="orb-bg"></div>
+        <div class="orb-shine"></div>
+        <div class="orb-icon" id="orbicon">
+          <svg viewBox="0 0 30 30" fill="none">
+            <rect x="11" y="3" width="8" height="14" rx="4" fill="rgba(255,255,255,0.85)"/>
+            <path d="M6 13a9 9 0 0 0 18 0" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <line x1="15" y1="22" x2="15" y2="27" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="11" y1="27" x2="19" y2="27" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="orb-lbl" id="orblbl">Gideon</div>
+      </div>
+    </div>
+
+    <div class="wave" id="wave">
+      <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+      <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+      <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+    </div>
+
+    <!-- SPEECH TEXT BOX — shows your words as you speak -->
+    <div class="speech-box" id="speechBox">
+      <div class="speech-label">You</div>
+      <div class="speech-text" id="speechText">
+        <span class="rph">Tap button and speak...</span>
+        <span class="speech-cursor hidden" id="cursor">|</span>
+      </div>
+    </div>
+
+    <!-- GIDEON RESPONSE BOX -->
+    <div class="rbox" id="rbox">
+      <div class="rbox-label">Gideon</div>
+      <span class="rph">Gideon is ready</span>
+    </div>
+  </div>
+
+  <div class="bnav">
+    <div class="bni" onclick="toggleGideon()">
+      <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0" stroke="rgba(255,255,255,.7)" stroke-width="1.8" fill="none" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="rgba(255,255,255,.7)" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="21" x2="15" y2="21" stroke="rgba(255,255,255,.7)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="bntxt" id="bmictxt">Activate</div>
+    </div>
+    <div class="bni" onclick="openCam()">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4" fill="rgba(8,9,18,1)" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/></svg>
+      <div class="bntxt">Camera</div>
+    </div>
+    <div class="bni" onclick="openGallery()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="rgba(8,9,18,1)" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/><polyline points="21 15 16 10 5 21" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"/></svg>
+      <div class="bntxt">Gallery</div>
+    </div>
+    <div class="bni" onclick="openHistory()">
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-2.05-4.95L15 9h5V4l-1.76 1.76A9 9 0 0 0 13 3zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      <div class="bntxt">History</div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="panel" id="histpanel">
+  <div class="ph"></div>
+  <div class="phead">
+    <div class="ptit">History</div>
+    <div class="hacts"><div class="hclr" onclick="clearHistory()">Clear</div><div class="pcls" onclick="closePanel('histpanel')">✕</div></div>
+  </div>
+  <div class="hlist" id="hlist"><div class="hemp">No conversations yet</div></div>
+</div>
+
+<!-- CAMERA -->
+<div class="panel" id="campanel">
+  <video id="camvid" autoplay playsinline></video>
+  <div class="camtop"><div class="camtit">Camera</div><div class="pcls" onclick="closeCam()">✕</div></div>
+  <div class="cambtm">
+    <div class="camsb" onclick="openGallery()">🖼️</div>
+    <div class="camsh" onclick="snapPhoto()"></div>
+    <div class="camsb" onclick="flipCam()">🔄</div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="settpanel">
+  <div class="ph"></div>
+  <div class="phead"><div class="ptit">Settings</div><div class="pcls" onclick="closePanel('settpanel')">✕</div></div>
+  <div class="slist2">
+    <div class="si"><div class="sil"><div class="sin">Male Voice</div><div class="sid">Gideon speaks in a deep male voice</div></div><div class="tog on" onclick="this.classList.toggle('on')"><div class="tkn"></div></div></div>
+    <div class="si"><div class="sil"><div class="sin">Save History</div><div class="sid">Store conversations on this device</div></div><div class="tog on" onclick="this.classList.toggle('on')"><div class="tkn"></div></div></div>
+    <div class="si"><div class="sil"><div class="sin">Sound Feedback</div><div class="sid">Audio cues when Gideon activates</div></div><div class="tog on" onclick="this.classList.toggle('on')"><div class="tkn"></div></div></div>
+    <div class="si"><div class="sil"><div class="sin">Subscription</div><div class="sid">3-day free trial · $8/month</div></div><div style="font-size:.62rem;color:#4de8a0;font-weight:600">Active ✦</div></div>
+    <div class="sver">Gideon AI · Version 1.0.0</div>
+  </div>
+</div>
+
+<input type="file" id="galleryInput" accept="image/*" onchange="handleGallery(event)">
+<div class="toast" id="toast"></div>
+
+<script>
+const GROQ_KEY = "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";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+const EL_KEY = "sk_6c742be90a4f12aced5e1c4f000ce1fa72f5bf3cb058b731";
+const EL_VOICE = "TX3LPaxmHKxFdv7VOQHJ";
+
+const SYS = `You are Gideon, a powerful and sophisticated AI assistant created exclusively by the Gideon AI team. You are your own unique intelligence. Never mention Groq, LLaMA, Meta, Claude, Anthropic, ChatGPT, OpenAI, Google, Gemini or any other AI company or model. If asked who made you say: "I was created by the Gideon AI team." Always respond as Gideon: confident, intelligent, and professional. Keep responses concise and natural for voice — 1 to 3 sentences unless more detail is needed.`;
+
+let isOn=false,isListening=false,isSpeaking=false,recog=null,camStream=null,facing='environment',curAudio=null;
+let hist=JSON.parse(localStorage.getItem('g_hist')||'[]');
+
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hidden');
+  if(localStorage.getItem('g_sub')){document.getElementById('main').classList.remove('hidden');initClock();}
+  else document.getElementById('sub').classList.remove('hidden');
+},2500);
+
+function startTrial(){
+  localStorage.setItem('g_sub','1');
+  document.getElementById('sub').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  initClock();showToast('Welcome to Gideon AI ✦');
+}
+
+function initClock(){
+  const t=()=>document.getElementById('stime').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  t();setInterval(t,1000);
+}
+
+function toggleGideon(){
+  if(isSpeaking){stopSpeaking();return;}
+  if(isListening){stopListen();return;}
+  if(!isOn)activate();else deactivate();
+}
+
+function activate(){
+  isOn=true;
+  document.getElementById('cring').classList.add('on');
+  document.getElementById('orb').classList.add('on');
+  document.getElementById('sdot').classList.add('on');
+  document.getElementById('slbl').textContent='Active';
+  setState('Listening...','listening');
+  document.getElementById('orbicon').innerHTML=`<svg viewBox="0 0 30 30" fill="none"><circle cx="15" cy="15" r="10" fill="rgba(200,0,10,.9)"/><circle cx="15" cy="15" r="6" fill="rgba(255,60,60,1)"/><circle cx="15" cy="15" r="3" fill="rgba(255,140,140,.9)"/></svg>`;
+  document.getElementById('orblbl').textContent='Listening';
+  document.getElementById('bmictxt').textContent='Stop';
+  // Show cursor in speech box
+  document.getElementById('cursor').classList.remove('hidden');
+  document.getElementById('speechBox').classList.add('active');
+  setSpeechText('');
+  startListen();
+}
+
+function deactivate(){
+  isOn=false;isListening=false;
+  document.getElementById('cring').classList.remove('on');
+  document.getElementById('orb').classList.remove('on');
+  document.getElementById('sdot').classList.remove('on');
+  document.getElementById('slbl').textContent='Standby';
+  setState('Tap to activate','');
+  document.getElementById('orbicon').innerHTML=`<svg viewBox="0 0 30 30" fill="none"><rect x="11" y="3" width="8" height="14" rx="4" fill="rgba(255,255,255,0.85)"/><path d="M6 13a9 9 0 0 0 18 0" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round" fill="none"/><line x1="15" y1="22" x2="15" y2="27" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="27" x2="19" y2="27" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/></svg>`;
+  document.getElementById('orblbl').textContent='Gideon';
+  document.getElementById('bmictxt').textContent='Activate';
+  document.getElementById('cursor').classList.add('hidden');
+  document.getElementById('speechBox').classList.remove('active');
+  hidePulse();hideWave();
+  if(recog){try{recog.stop();}catch(e){}}
+}
+
+function setState(t,c){const el=document.getElementById('gstat');el.textContent=t;el.className='gstat'+(c?' '+c:'');}
+
+function setSpeechText(txt){
+  const el=document.getElementById('speechText');
+  const cursor=document.getElementById('cursor');
+  if(!txt){
+    el.innerHTML=`<span class="rph">Listening...</span>`;
+    el.appendChild(cursor);
+  } else {
+    el.textContent=txt;
+    el.appendChild(cursor);
+  }
+}
+
+function startListen(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){setResp("Voice not supported. Please use Chrome browser.");return;}
+  recog=new SR();
+  recog.continuous=false;
+  recog.interimResults=true;
+  recog.lang='en-US';
+  isListening=true;showPulse();showWave();
+
+  recog.onresult=(e)=>{
+    const txt=[...e.results].map(r=>r[0].transcript).join('');
+    // Show text in real time as user speaks
+    setSpeechText(txt);
+    if(e.results[e.results.length-1].isFinal){
+      stopListen();
+      processQuery(txt);
+    }
+  };
+  recog.onerror=(e)=>{
+    stopListen();
+    if(e.error!=='aborted'){
+      setSpeechText('Could not hear you. Tap to try again.');
+    }
+  };
+  recog.onend=()=>{if(isListening)stopListen();};
+  recog.start();
+}
+
+function stopListen(){
+  isListening=false;hidePulse();hideWave();
+  document.getElementById('cursor').classList.add('hidden');
+  document.getElementById('speechBox').classList.remove('active');
+  if(recog){try{recog.stop();}catch(e){}}
+  if(isOn&&!isSpeaking)setState('Active','active');
+}
+
+async function processQuery(text){
+  if(!text.trim())return;
+  const lo=text.toLowerCase();
+
+  if(lo.includes('open camera')||lo.includes('take photo')){speak("Opening your camera now.");setTimeout(openCam,1500);return;}
+  if(lo.includes('open gallery')||lo.includes('open photos')){speak("Opening your photo gallery.");setTimeout(openGallery,1500);return;}
+  if(lo.includes('open history')||lo.includes('show history')){speak("Here is your conversation history.");setTimeout(openHistory,1500);return;}
+  if(lo.includes('what time')||lo.includes('current time')){speak(`The current time is ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}.`);return;}
+  if(lo.includes('what date')||lo.includes("today's date")||lo.includes('what day')){speak(`Today is ${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}.`);return;}
+
+  const stepback={youtube:['youtube.com','YouTube'],instagram:['instagram.com','Instagram'],whatsapp:['wa.me','WhatsApp'],tiktok:['tiktok.com','TikTok'],twitter:['twitter.com','Twitter'],facebook:['facebook.com','Facebook'],snapchat:['snapchat.com','Snapchat'],spotify:['open.spotify.com','Spotify'],netflix:['netflix.com','Netflix'],pinterest:['pinterest.com','Pinterest'],amazon:['amazon.com','Amazon'],uber:['uber.com','Uber']};
+  for(const[k,v]of Object.entries(stepback)){if(lo.includes(k)){speak(`Opening ${v[1]} now.`);setTimeout(()=>window.open('https://'+v[0],'_blank'),1400);return;}}
+
+  const browsers={google:'https://google.com',chrome:'https://google.com',safari:'https://apple.com',opera:'https://opera.com',bing:'https://bing.com',brave:'https://search.brave.com'};
+  for(const[k,u]of Object.entries(browsers)){if(lo.includes('open '+k)||lo.includes('go to '+k)){speak(`Opening ${k.charAt(0).toUpperCase()+k.slice(1)} for you.`);setTimeout(()=>window.open(u,'_blank'),1400);return;}}
+
+  if(lo.includes('search for ')||lo.includes('search ')){
+    const q=text.replace(/search for |search /i,'').trim();
+    speak(`Searching for ${q}.`);
+    setTimeout(()=>window.open(`https://google.com/search?q=${encodeURIComponent(q)}`,'_blank'),1400);
+    return;
+  }
+
+  const sm=lo.match(/open (\w+)\.(\w+)/);
+  if(sm){speak("Opening that website for you.");setTimeout(()=>window.open(`https://${sm[1]}.${sm[2]}`,'_blank'),1400);return;}
+
+  setState('Thinking...','thinking');
+  addHist('You',text);
+
+  try{
+    const response = await fetch(GROQ_URL,{
+      method:"POST",
+      headers:{"Authorization":`Bearer ${GROQ_KEY}`,"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:GROQ_MODEL,
+        messages:[{role:"system",content:SYS},{role:"user",content:text}],
+        max_tokens:300,
+        temperature:0.7
+      })
+    });
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
+    speak(reply);
+  }catch(e){
+    speak("I'm having trouble connecting. Please check your internet and try again.");
+  }
+}
+
+async function speak(text){
+  isSpeaking=true;setState('Speaking...','speaking');setResp(text);addHist('Gideon',text);showWave();
+  try{
+    const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`,{
+      method:'POST',
+      headers:{'xi-api-key':EL_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({text,model_id:'eleven_monolingual_v1',voice_settings:{stability:.5,similarity_boost:.78}})
+    });
+    if(r.ok){const blob=await r.blob();curAudio=new Audio(URL.createObjectURL(blob));curAudio.onended=doneSpeaking;curAudio.onerror=()=>fallback(text);await curAudio.play();}
+    else fallback(text);
+  }catch(e){fallback(text);}
+}
+
+function fallback(text){
+  const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.93;u.pitch=.8;
+  const voices=speechSynthesis.getVoices();
+  const v=voices.find(v=>v.name.includes('Daniel')||v.name.includes('David')||v.name.includes('Alex')||v.name.includes('Google UK English Male'));
+  if(v)u.voice=v;u.onend=doneSpeaking;speechSynthesis.speak(u);
+}
+
+function stopSpeaking(){if(curAudio){curAudio.pause();curAudio=null;}speechSynthesis.cancel();doneSpeaking();}
+function doneSpeaking(){isSpeaking=false;hideWave();if(isOn)setState('Active','active');}
+function showWave(){document.getElementById('wave').classList.add('show');}
+function hideWave(){document.getElementById('wave').classList.remove('show');}
+function showPulse(){['pr1','pr2','pr3'].forEach(id=>document.getElementById(id).classList.add('show'));}
+function hidePulse(){['pr1','pr2','pr3'].forEach(id=>document.getElementById(id).classList.remove('show'));}
+function setResp(t){
+  const el=document.getElementById('rbox');
+  el.innerHTML=`<div class="rbox-label">Gideon</div>${t}`;
+  el.classList.add('lit');
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+function addHist(role,text){
+  hist.unshift({role,text,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),id:Date.now()});
+  if(hist.length>120)hist=hist.slice(0,120);
+  localStorage.setItem('g_hist',JSON.stringify(hist));
+}
+function renderHist(){
+  const el=document.getElementById('hlist');
+  if(!hist.length){el.innerHTML='<div class="hemp">No conversations yet</div>';return;}
+  el.innerHTML=hist.map(h=>`<div class="hi"><div class="hm"><span class="hr ${h.role==='You'?'u':''}">${h.role==='You'?'You':'Gideon'}</span><span class="ht2">${h.time}</span></div><div class="htxt">${h.text}</div><div class="cpbtn" onclick="copyItem(${h.id})">📋 Copy</div></div>`).join('');
+}
+function copyItem(id){
+  const item=hist.find(h=>h.id===id);if(!item)return;
+  navigator.clipboard.writeText(item.text).then(()=>showToast('Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=item.text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('Copied!');});
+}
+function clearHistory(){hist=[];localStorage.removeItem('g_hist');renderHist();showToast('History cleared');}
+function openHistory(){renderHist();document.getElementById('histpanel').classList.add('open');}
+function closePanel(id){document.getElementById(id).classList.remove('open');}
+function openSettings(){document.getElementById('settpanel').classList.add('open');}
+async function openCam(){
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});document.getElementById('camvid').srcObject=camStream;document.getElementById('campanel').classList.add('open');}
+  catch(e){showToast('Camera access denied');}
+}
+function closeCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}closePanel('campanel');}
+function flipCam(){facing=facing==='environment'?'user':'environment';closeCam();setTimeout(openCam,300);}
+function snapPhoto(){const v=document.getElementById('camvid');const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);showToast('📸 Photo captured!');}
+function openGallery(){document.getElementById('galleryInput').click();}
+function handleGallery(e){if(e.target.files[0])showToast('Photo selected!');}
+</script>
+</body>
+</html>
